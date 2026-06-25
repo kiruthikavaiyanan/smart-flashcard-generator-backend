@@ -1,10 +1,13 @@
 from transformers import pipeline
 import re
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-qg_pipeline = pipeline(
-    "text2text-generation",
-    model="valhalla/t5-base-qg-hl"
-)
+tokenizer = AutoTokenizer.from_pretrained("valhalla/t5-base-qg-hl")
+model = AutoModelForSeq2SeqLM.from_pretrained("valhalla/t5-base-qg-hl")
+# qg_pipeline = pipeline(
+#     "text2text-generation",
+#     model="valhalla/t5-base-qg-hl"
+# )
 
 def clean_sentence(sentence):
     sentence = sentence.strip()
