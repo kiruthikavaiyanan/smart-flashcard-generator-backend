@@ -1,30 +1,31 @@
 from transformers import pipeline
 import re
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-tokenizer = AutoTokenizer.from_pretrained("valhalla/t5-base-qg-hl")
-model = AutoModelForSeq2SeqLM.from_pretrained("valhalla/t5-base-qg-hl")
-# qg_pipeline = pipeline(
-#     "text2text-generation",
-#     model="valhalla/t5-base-qg-hl"
-# )
+# Load Question Generation Model
+qg_pipeline = pipeline(
+    "text2text-generation",
+    model="valhalla/t5-base-qg-hl",
+    tokenizer="valhalla/t5-base-qg-hl"
+)
+
 
 def clean_sentence(sentence):
     sentence = sentence.strip()
 
-    # remove repeated words like "Dr Dr Dr"
+    # Remove repeated words
     sentence = re.sub(r'\b(\w+)( \1\b)+', r'\1', sentence)
 
-    # remove extra spaces
-    sentence = re.sub(' +', ' ', sentence)
+    # Remove extra spaces
+    sentence = re.sub(r'\s+', ' ', sentence)
 
     return sentence
+
 
 def generate_questions(text):
 
     flashcards = []
 
-    # split properly (not only ".")
+    # Split text into sentences
     sentences = re.split(r'[.\n]', text)
 
     seen = set()
@@ -33,17 +34,18 @@ def generate_questions(text):
 
         sentence = clean_sentence(sentence)
 
-        # skip small / garbage
+        # Skip short sentences
         if len(sentence) < 10:
             continue
 
-        # remove duplicates
+        # Skip duplicates
         if sentence in seen:
             continue
+
         seen.add(sentence)
 
         try:
-            input_text = "generate question: " + sentence
+            input_text = f"generate question: {sentence}"
 
             result = qg_pipeline(
                 input_text,
@@ -53,9 +55,9 @@ def generate_questions(text):
 
             question = result[0]["generated_text"].strip()
 
-            # FORCE QUESTION FORMAT
+            # Fallback question
             if not question.endswith("?"):
-                question = "What is: " + sentence[:25] + "?"
+                question = f"What is {sentence[:30]}?"
 
             flashcards.append({
                 "question": question,
@@ -63,6 +65,6 @@ def generate_questions(text):
             })
 
         except Exception as e:
-            print("Error:", e)
+            print("Question Generation Error:", e)
 
     return flashcards
