@@ -52,7 +52,7 @@ def generate_questions(text):
 
             # FORCE QUESTION FORMAT
             if not question.endswith("?"):
-                question = "What is: " + sentence[:50] + "?"
+                question = "What is: " + sentence[:25] + "?"
 
             flashcards.append({
                 "question": question,
